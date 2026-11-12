@@ -94,6 +94,12 @@ Normalization; redelivery and repeat submissions; least-loaded routing; same-ser
   - Rising review-queue age.
   - Any text sent to a suppressed number (a page-level incident).
 
+## Open questions for the team
+1. **Capacity:** reps only have `assigned_today`. Do you track active caseload or capacity per rep? Routing on open inquiries would be fairer than daily volume.
+2. **Ownership:** does ownership belong to the first rep who calls or the first who actually talks to the lead? Does that affect commission or reporting?
+3. **Providers:** how do Close calling and RingCentral divide the work: by team, by region, or as a fallback? Which one is meant to send texts?
+4. **Conversion:** what counts as conversion: a reply, a booked consult or a retained client? Text success should be measured against that, not delivery.
+
 ## Time and tools
 - Time spent: **2 hours**, including setup and documentation.
 - AI assistant: Claude (Anthropic) for reviewing the data, writing code and tests, and drafting docs. I reviewed, ran and verified the output.
