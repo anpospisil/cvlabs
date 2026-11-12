@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Lead workflow - CV Labs prototype</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root { --bd:#d9dce1; --mut:#667; --red:#c62828; --redbg:#fff4f4; --blue:#e9f1ff; --ok:#2e7d32; }
+  * { box-sizing: border-box; }
+  body { font: 14px/1.45 system-ui, -apple-system, sans-serif; margin: 0; color: #1d1f23; background: #f6f7f9; }
+  header { position: sticky; top: 0; background: #1f2937; color: #e5e7eb; padding: 10px 20px; z-index: 2; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+  header h1 { font-size: 13px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .05em; color: #9ca3af; font-weight: 600; }
+  header .pill { background: #374151; color: #d1d5db; }
+  header button { background: #374151; color: #f3f4f6; border-color: #4b5563; }
+  header .event { color: #9ca3af; } header .event b, header .event ul { color: #f3f4f6; }
+  .dash { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px 0; max-width: 1300px; }
+  .dash h1 { font-size: 20px; margin: 0; }
+  .dash label { font-size: 13px; color: var(--mut); }
+  .task .na { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--mut); }
+  .task .who { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .why { display: block; width: fit-content; background: #ffb300; color: #3b2a00; font-weight: 600; border-radius: 6px; padding: 2px 8px; margin-bottom: 6px; }
+  .pill.new { background: #ffb300; color: #3b2a00; }
+  .card.flash { box-shadow: inset 4px 0 0 #ffb300; }
+  .bar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  button, select { font: inherit; padding: 4px 10px; border: 1px solid var(--bd); background: #fff; border-radius: 6px; cursor: pointer; }
+  input[type=range] { width: 260px; }
+  .event { margin-top: 8px; font-size: 13px; color: var(--mut); }
+  .event b { color: #1d1f23; }
+  .event ul { margin: 4px 0 0; padding-left: 18px; color: #1d1f23; }
+  main { display: grid; grid-template-columns: 300px 1fr; gap: 16px; padding: 16px 20px; max-width: 1300px; }
+  aside h2, section h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--mut); margin: 0 0 8px; }
+  .task { background: #fff; border: 1px solid var(--bd); border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 13px; cursor: pointer; }
+  .task.attn { border-color: var(--red); background: var(--redbg); }
+  .kind { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--mut); }
+  .attn .kind { color: var(--red); }
+  .card { background: #fff; border: 1px solid var(--bd); border-radius: 10px; padding: 12px 16px; margin-bottom: 12px; }
+  .card.attn { border-color: var(--red); }
+  .top { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .top h3 { margin: 0; font-size: 16px; }
+  .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 99px; background: #eef0f3; margin-right: 4px; }
+  .pill.red { background: var(--red); color: #fff; } .pill.ok { background: #e6f4ea; color: var(--ok); }
+  .meta { color: var(--mut); font-size: 13px; margin: 4px 0 8px; }
+  .next { background: var(--blue); border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
+  .next .t { margin: 4px 0; } .next .a { font-weight: 600; }
+  .attn .next { background: var(--redbg); }
+  details { margin-top: 6px; } summary { cursor: pointer; color: var(--mut); font-size: 13px; }
+  ol.tl { margin: 6px 0 0; padding-left: 0; list-style: none; font-size: 12.5px; }
+  ol.tl li { padding: 3px 0; border-bottom: 1px dashed #eee; }
+  ol.tl code { color: var(--mut); }
+  .msg { font-size: 13px; margin: 4px 0; }
+  .empty { color: var(--mut); }
+</style></head>
+<body>
+<header>
+  <h1>▶ Workflow playback <span class="pill">simulated Close / RingCentral events - demo control, not part of the sales view</span></h1>
+  <div class="bar">
+    <button id="first">⏮</button><button id="prev">◀ Prev</button>
+    <input id="step" type="range" min="0" value="0">
+    <button id="next">Next event ▶</button><button id="last">⏭ All</button>
+    <span id="pos"></span>
+  </div>
+  <div class="event" id="event"></div>
+</header>
+<div class="dash">
+  <h1>Sales dashboard</h1>
+  <label>View as <select id="who"><option value="">Everyone</option></select></label>
+</div>
+<main>
+  <aside><h2 id="taskhead">Open tasks</h2><div id="tasks"></div></aside>
+  <section><h2>Leads by service inquiry</h2><div id="cards"></div></section>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+const ATTN = ["sms_failed","match_review","escalation","compliance_review"];
+// Which brief requirement each event demonstrates (section numbers from the assignment brief)
+const SCENARIO = {
+  E001: "3A/3B · New inquiry → new person, least-loaded eligible owner, first-call task",
+  E002: "3A · Repeat form submission → attached to open inquiry, no duplicate task",
+  E003: "3B · Same-service return → existing owner kept",
+  E004: "3C · Voicemail left → permission + STOP + window checked → SMS sent",
+  E005: "3C · Voicemail on a shared phone → SMS sent, shared phone flagged",
+  E006: "3D · Provider accepted ≠ delivered",
+  E007: "3D · Delivery failed → exactly one actionable task for the owner",
+  E008: "3D · Delivered",
+  E009: "3D · Late, out-of-order 'queued' → logged, state not regressed",
+  E010: "3C · Busy call (and outside contact window) → retry, no SMS",
+  E011: "3C · Same interaction, second provider → conversation, no SMS",
+  E012: "3C · Late-arriving STOP → phone suppressed across all reps and services",
+  E013: "3C · Voicemail after STOP → SMS suppressed",
+  E014: "3A · New email on an existing person's phone → review, no owner",
+  E015: "3A · Email and phone point to different people → review, no owner",
+  E016: "3B/3C · New inquiry, unknown timezone → assigned, automated SMS blocked",
+  E017: "3B · Different service → old assignment kept, new eligible owner",
+  E018: "3B · Different service → existing owner eligible, reused for continuity",
+  E019: "3C · STOP carries across services → SMS suppressed",
+  E020: "3B · Same service, owner unavailable → owner kept, eligible rep covers",
+};
+let state, upto = null, who = "";
+
+async function load(n) {
+  const r = await fetch("/api/state" + (n == null ? "" : "?upto=" + n));
+  state = await r.json(); upto = state.upto;
+  if (!$("who").dataset.filled) {
+    const opts = [...state.reps.map(r => [r.id, `${r.id} ${r.name}${r.available ? "" : " (unavailable)"}`]), ["REVIEW_QUEUE","Review queue"], ["SALES_MANAGER","Sales manager"]];
+    $("who").innerHTML += opts.map(([v,l]) => `<option value="${v}">${esc(l)}</option>`).join("");
+    $("who").dataset.filled = 1;
+  }
+  render();
+}
+
+function render() {
+  $("step").max = state.total; $("step").value = upto;
+  $("pos").textContent = `Event ${upto} of ${state.total}`;
+  const e = state.last_event;
+  const redelivery = state.last_log.some(t => t.startsWith("Ignored redelivery"));
+  const why = e && (redelivery ? "Repeated events · Redelivered webhook (same event_id) → ignored" : SCENARIO[e.event_id]);
+  $("event").innerHTML = e
+    ? (why ? `<div class="why">${esc(why)}</div>` : "") + `Last event: <b>${esc(e.event_id)} ${esc(e.type)}</b> received ${esc(e.received_at.slice(11,19))}Z` +
+      (state.last_log.length ? `<ul>${state.last_log.map(t => `<li>${esc(t)}</li>`).join("")}</ul>` : "")
+    : "No events processed yet - existing CRM snapshot only. Press <b>Next event</b>.";
+
+  const cards = state.cards.filter(c => !who || c.people.includes(who));
+  const tasks = state.cards.flatMap(c => c.tasks.map(t => ({ ...t, card: c }))).filter(t => !who || t.assignee === who)
+    .sort((a,b) => ATTN.includes(b.kind) - ATTN.includes(a.kind));
+  $("taskhead").textContent = `Open tasks (${tasks.length})`;
+  $("tasks").innerHTML = tasks.length ? tasks.map(t => `
+    <div class="task ${ATTN.includes(t.kind) ? "attn" : ""}" data-card="${t.card.id}" title="${esc(t.issue + "\n→ " + t.next_action)}">
+      <div class="kind">${esc(t.kind.replace("_"," "))} · ${esc(t.assignee)}</div>
+      <div class="who"><b>${esc(t.card.name)}</b> · ${esc(t.card.service)}</div>
+      <div class="na">${esc(t.next_action)}</div></div>`).join("") : `<div class="empty">Nothing to do.</div>`;
+
+  const lastId = e?.event_id;
+  $("cards").innerHTML = cards.length ? cards.map(c => `
+    <div class="card ${c.attention ? "attn" : ""} ${c.history.some(h => h.event === lastId) ? "flash" : ""}" id="card-${c.id}">
+      <div class="top"><h3>${esc(c.name)} · ${esc(c.service)}</h3><span class="pill">${esc(c.id)}</span></div>
+      <div>
+        ${c.history.some(h => h.event === lastId) ? `<span class="pill new">Just updated</span>` : ""}
+        ${c.attention ? `<span class="pill red">Needs attention</span>` : ""}
+        <span class="pill">${esc(c.status)}</span>
+        <span class="pill">Owner: ${esc(c.owner ?? "none")}</span>
+        ${c.covering ? `<span class="pill">Covering: ${esc(c.covering)}</span>` : ""}
+        ${c.stop ? `<span class="pill red">STOP - no SMS</span>` : ""}
+      </div>
+      <div class="meta">${esc(c.phone ?? "-")} · TZ ${esc(c.timezone ?? "UNKNOWN")} · SMS permission: ${esc(c.sms_permission)}</div>
+      <div class="next"><div class="kind">What to do next</div>
+        ${c.tasks.length ? c.tasks.map(t => `<div class="t"><span class="a">${esc(t.assignee)}:</span> ${esc(t.next_action)}<br><small>${esc(t.issue)}</small></div>`).join("") : "<div class='t'>No open action.</div>"}
+      </div>
+      ${c.messages.map(m => `<div class="msg">💬 Text <b>${esc(m.id)}</b>: <span class="pill ${m.state === "failed" ? "red" : m.state === "delivered" ? "ok" : ""}">${esc(m.state)}</span>${m.error ? " " + esc(m.error) : ""} <small>(${esc(m.history.join(" → "))})</small></div>`).join("")}
+      ${c.sms_decisions.map(d => `<div class="msg">${d.sent ? "✅" : "🚫"} SMS after call ${esc(d.attempt)}: ${d.sent ? "sent" : "not sent"} - ${esc(d.reason)}</div>`).join("")}
+      <details ${c.history.some(h => h.event === lastId) ? "open" : ""}><summary>What happened (${c.history.length})</summary>
+        <ol class="tl">${c.history.map(h => `<li><code>${esc(h.at.slice(11,16))}Z ${esc(h.event)}</code> ${esc(h.text)}</li>`).join("")}</ol>
+      </details>
+    </div>`).join("") : `<div class="empty">No leads for this view yet.</div>`;
+}
+
+$("next").onclick = () => load(Math.min(upto + 1, state.total));
+$("prev").onclick = () => load(Math.max(upto - 1, 0));
+$("first").onclick = () => load(0);
+$("last").onclick = () => load(state.total);
+$("step").oninput = ev => load(Number(ev.target.value));
+$("who").onchange = ev => { who = ev.target.value; render(); };
+$("tasks").onclick = ev => { const t = ev.target.closest(".task"); if (t) document.getElementById("card-" + t.dataset.card)?.scrollIntoView({ behavior: "smooth", block: "center" }); };
+document.addEventListener("keydown", ev => { if (ev.key === "ArrowRight") $("next").click(); if (ev.key === "ArrowLeft") $("prev").click(); });
+load();
+</script>
+</body></html>

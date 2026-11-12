@@ -1,0 +1,532 @@
+{
+  "description": "Synthetic interview data. All names, addresses, numbers and events are fictional. Use for local simulation only.",
+  "snapshot_at": "2026-11-06T14:00:00Z",
+  "evaluation_at": "2026-11-06T16:00:00Z",
+  "notes": [
+    "Existing leads represent state at snapshot_at. Events are listed in received_at order.",
+    "Repeated event_id values represent redelivery of the same business event; different submission_id values represent separate form submissions.",
+    "Permission omitted from a submission means no new permission information; it does not mean a grant or a revocation.",
+    "The same interaction_id can include more than one call attempt, with different attempt_id and provider values.",
+    "SMS status fixtures refer to the message that would be created for related_call_attempt_id; your mock sender may use the fixture message_id.",
+    "available is a point-in-time snapshot, not a permanent assignment restriction.",
+    "service_units defines the three service IDs. Each rep's eligible_service_units lists the units that rep can handle.",
+    "existing_leads is a legacy CRM snapshot. service and owner_id describe the existing record's service assignment. You may model people and service inquiries differently, while retaining the original assignments and history.",
+    "assigned_today is an aggregate across all units. Explain the distribution rule you choose for reps who cover more than one unit.",
+    "STOP suppression applies across all service units and all reps for that phone. A different service request with no new permission information does not clear it."
+  ],
+  "contact_policy": {
+    "sms_after_call_outcomes": [
+      "voicemail_left"
+    ],
+    "sms_requires_recorded_permission": true,
+    "stop_blocks_further_sms_to_that_phone_across_all_reps": true,
+    "outbound_contact_window_recipient_local": {
+      "start": "09:00",
+      "end": "18:00"
+    },
+    "unknown_timezone": "Explain your handling; a phone area code alone is insufficient evidence of current location.",
+    "approved_sms_template": "Hi {{first_name}}, this is {{rep_name}} from CanadaVisa. I just tried calling about your inquiry and left a voicemail. You can reply here or choose a time at https://example.com/book."
+  },
+  "reps": [
+    {
+      "id": "REP01",
+      "name": "Salesperson 1",
+      "available": true,
+      "assigned_today": 18,
+      "eligible_service_units": [
+        "citizenship"
+      ]
+    },
+    {
+      "id": "REP02",
+      "name": "Salesperson 2",
+      "available": false,
+      "assigned_today": 2,
+      "eligible_service_units": [
+        "citizenship"
+      ]
+    },
+    {
+      "id": "REP03",
+      "name": "Salesperson 3",
+      "available": false,
+      "assigned_today": 13,
+      "eligible_service_units": [
+        "citizenship"
+      ]
+    },
+    {
+      "id": "REP04",
+      "name": "Salesperson 4",
+      "available": true,
+      "assigned_today": 15,
+      "eligible_service_units": [
+        "citizenship",
+        "inadmissibility"
+      ]
+    },
+    {
+      "id": "REP05",
+      "name": "Salesperson 5",
+      "available": true,
+      "assigned_today": 10,
+      "eligible_service_units": [
+        "inadmissibility"
+      ]
+    },
+    {
+      "id": "REP06",
+      "name": "Salesperson 6",
+      "available": true,
+      "assigned_today": 17,
+      "eligible_service_units": [
+        "work_permits"
+      ]
+    },
+    {
+      "id": "REP07",
+      "name": "Salesperson 7",
+      "available": true,
+      "assigned_today": 9,
+      "eligible_service_units": [
+        "citizenship",
+        "work_permits"
+      ]
+    },
+    {
+      "id": "REP08",
+      "name": "Salesperson 8",
+      "available": true,
+      "assigned_today": 19,
+      "eligible_service_units": [
+        "citizenship",
+        "inadmissibility",
+        "work_permits"
+      ]
+    },
+    {
+      "id": "REP09",
+      "name": "Salesperson 9",
+      "available": true,
+      "assigned_today": 16,
+      "eligible_service_units": [
+        "inadmissibility"
+      ]
+    },
+    {
+      "id": "REP10",
+      "name": "Salesperson 10",
+      "available": true,
+      "assigned_today": 12,
+      "eligible_service_units": [
+        "work_permits"
+      ]
+    }
+  ],
+  "existing_leads": [
+    {
+      "id": "L1001",
+      "name": "Jordan Lee",
+      "email": "jordan.lee@example.com",
+      "phone": "+12025550101",
+      "owner_id": "REP03",
+      "sms_permission": "granted",
+      "timezone": "America/New_York",
+      "service": "citizenship"
+    },
+    {
+      "id": "L1002",
+      "name": "Casey Lee",
+      "email": "casey.lee@example.com",
+      "phone": "+12025550101",
+      "owner_id": "REP04",
+      "sms_permission": "granted",
+      "timezone": "America/New_York",
+      "service": "citizenship"
+    },
+    {
+      "id": "L1003",
+      "name": "Morgan Patel",
+      "email": "morgan.patel@example.com",
+      "phone": "+14165550102",
+      "owner_id": "REP07",
+      "sms_permission": "granted",
+      "timezone": "America/Toronto",
+      "service": "work_permits"
+    },
+    {
+      "id": "L1004",
+      "name": "Avery Stone",
+      "email": "avery.stone@example.com",
+      "phone": "+12025550104",
+      "owner_id": "REP05",
+      "sms_permission": "granted",
+      "timezone": "America/Los_Angeles",
+      "service": "inadmissibility"
+    }
+  ],
+  "phone_inventory": [
+    {
+      "number": "+12025550180",
+      "provider": "Close",
+      "voice": true,
+      "sms": true,
+      "business_verification_status": "not_provided",
+      "messaging_registration_status": "not_provided"
+    },
+    {
+      "number": "+14165550181",
+      "provider": "RingCentral",
+      "voice": true,
+      "sms": "not_provided",
+      "business_verification_status": "not_provided"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "E001",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:00:00Z",
+      "received_at": "2026-11-06T15:00:02Z",
+      "submission_id": "F100",
+      "contact": {
+        "name": "Taylor Reed",
+        "email": "taylor.reed@example.com",
+        "phone": "(202) 555-0106",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "sms_permission": "granted",
+      "source": "website",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E002",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:02:00Z",
+      "received_at": "2026-11-06T15:02:02Z",
+      "submission_id": "F101",
+      "contact": {
+        "name": "Taylor Reed",
+        "email": " TAYLOR.REED@EXAMPLE.COM ",
+        "phone": "+1 202-555-0106",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "source": "website",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E002",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:02:00Z",
+      "received_at": "2026-11-06T15:02:40Z",
+      "submission_id": "F101",
+      "contact": {
+        "name": "Taylor Reed",
+        "email": " TAYLOR.REED@EXAMPLE.COM ",
+        "phone": "+1 202-555-0106",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "source": "website",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E003",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:03:00Z",
+      "received_at": "2026-11-06T15:03:01Z",
+      "submission_id": "F102",
+      "contact": {
+        "name": "Casey Lee",
+        "email": "casey.lee@example.com",
+        "phone": "+1 (202) 555-0101",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "source": "website",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E004",
+      "type": "call.finished",
+      "occurred_at": "2026-11-06T15:05:00Z",
+      "received_at": "2026-11-06T15:05:02Z",
+      "interaction_id": "I100",
+      "attempt_id": "C100",
+      "provider": "Close",
+      "lead_reference": {
+        "submission_id": "F100"
+      },
+      "provider_status": "completed",
+      "business_outcome": "voicemail_left",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E005",
+      "type": "call.finished",
+      "occurred_at": "2026-11-06T15:06:00Z",
+      "received_at": "2026-11-06T15:06:02Z",
+      "interaction_id": "I101",
+      "attempt_id": "C101",
+      "provider": "Close",
+      "lead_reference": {
+        "lead_id": "L1002"
+      },
+      "provider_status": "completed",
+      "business_outcome": "voicemail_left",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E006",
+      "type": "sms.status",
+      "occurred_at": "2026-11-06T15:06:05Z",
+      "received_at": "2026-11-06T15:06:06Z",
+      "message_id": "M101",
+      "lead_reference": {
+        "lead_id": "L1002"
+      },
+      "related_call_attempt_id": "C101",
+      "provider": "Close",
+      "status": "accepted",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E007",
+      "type": "sms.status",
+      "occurred_at": "2026-11-06T15:07:00Z",
+      "received_at": "2026-11-06T15:07:02Z",
+      "message_id": "M101",
+      "lead_reference": {
+        "lead_id": "L1002"
+      },
+      "related_call_attempt_id": "C101",
+      "provider": "Close",
+      "status": "failed",
+      "error_code": "30007",
+      "error_category": "carrier_filtering",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E008",
+      "type": "sms.status",
+      "occurred_at": "2026-11-06T15:08:00Z",
+      "received_at": "2026-11-06T15:08:01Z",
+      "message_id": "M100",
+      "lead_reference": {
+        "submission_id": "F100"
+      },
+      "related_call_attempt_id": "C100",
+      "provider": "Close",
+      "status": "delivered",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E009",
+      "type": "sms.status",
+      "occurred_at": "2026-11-06T15:05:04Z",
+      "received_at": "2026-11-06T15:09:00Z",
+      "message_id": "M100",
+      "lead_reference": {
+        "submission_id": "F100"
+      },
+      "related_call_attempt_id": "C100",
+      "provider": "Close",
+      "status": "queued",
+      "service": "citizenship"
+    },
+    {
+      "event_id": "E010",
+      "type": "call.finished",
+      "occurred_at": "2026-11-06T15:10:00Z",
+      "received_at": "2026-11-06T15:10:01Z",
+      "interaction_id": "I102",
+      "attempt_id": "C102",
+      "provider": "Close",
+      "lead_reference": {
+        "lead_id": "L1004"
+      },
+      "provider_status": "busy",
+      "business_outcome": null,
+      "service": "inadmissibility"
+    },
+    {
+      "event_id": "E011",
+      "type": "call.finished",
+      "occurred_at": "2026-11-06T15:11:00Z",
+      "received_at": "2026-11-06T15:11:02Z",
+      "interaction_id": "I102",
+      "attempt_id": "C103",
+      "provider": "RingCentral",
+      "lead_reference": {
+        "lead_id": "L1004"
+      },
+      "provider_status": "completed",
+      "business_outcome": "conversation_completed",
+      "service": "inadmissibility"
+    },
+    {
+      "event_id": "E012",
+      "type": "sms.received",
+      "occurred_at": "2026-11-06T15:01:00Z",
+      "received_at": "2026-11-06T15:12:00Z",
+      "lead_reference": {
+        "lead_id": "L1003"
+      },
+      "from_phone": "+14165550102",
+      "provider": "Close",
+      "body": "STOP"
+    },
+    {
+      "event_id": "E013",
+      "type": "call.finished",
+      "occurred_at": "2026-11-06T15:04:00Z",
+      "received_at": "2026-11-06T15:13:00Z",
+      "interaction_id": "I103",
+      "attempt_id": "C104",
+      "provider": "Close",
+      "lead_reference": {
+        "lead_id": "L1003"
+      },
+      "provider_status": "completed",
+      "business_outcome": "voicemail_left",
+      "service": "work_permits"
+    },
+    {
+      "event_id": "E014",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:14:00Z",
+      "received_at": "2026-11-06T15:14:01Z",
+      "submission_id": "F103",
+      "contact": {
+        "name": "Riley Taylor",
+        "email": "riley.taylor@example.com",
+        "phone": "+12025550104",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "sms_permission": "granted",
+      "source": "website",
+      "service": "inadmissibility"
+    },
+    {
+      "event_id": "E015",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:15:00Z",
+      "received_at": "2026-11-06T15:15:01Z",
+      "submission_id": "F104",
+      "contact": {
+        "name": "Jordan Lee",
+        "email": "jordan.lee@example.com",
+        "phone": "+12025550104",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "source": "website",
+      "service": "work_permits"
+    },
+    {
+      "event_id": "E016",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:16:00Z",
+      "received_at": "2026-11-06T15:16:02Z",
+      "submission_id": "F105",
+      "contact": {
+        "name": "Drew Ellis",
+        "email": "drew.ellis@example.com",
+        "phone": "+12025550107",
+        "phone_country": "US",
+        "timezone": null
+      },
+      "sms_permission": "granted",
+      "source": "website",
+      "service": "work_permits"
+    },
+    {
+      "event_id": "E017",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:17:00Z",
+      "received_at": "2026-11-06T15:17:02Z",
+      "submission_id": "F106",
+      "contact": {
+        "name": "Morgan Patel",
+        "email": "morgan.patel@example.com",
+        "phone": "+14165550102",
+        "phone_country": "CA",
+        "timezone": "America/Toronto"
+      },
+      "source": "website",
+      "service": "inadmissibility"
+    },
+    {
+      "event_id": "E018",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:18:00Z",
+      "received_at": "2026-11-06T15:18:02Z",
+      "submission_id": "F107",
+      "contact": {
+        "name": "Casey Lee",
+        "email": "casey.lee@example.com",
+        "phone": "+12025550101",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "source": "website",
+      "service": "inadmissibility"
+    },
+    {
+      "event_id": "E019",
+      "type": "call.finished",
+      "occurred_at": "2026-11-06T15:19:00Z",
+      "received_at": "2026-11-06T15:19:02Z",
+      "interaction_id": "I104",
+      "attempt_id": "C105",
+      "provider": "Close",
+      "lead_reference": {
+        "submission_id": "F106"
+      },
+      "service": "inadmissibility",
+      "provider_status": "completed",
+      "business_outcome": "voicemail_left"
+    },
+    {
+      "event_id": "E020",
+      "type": "form.submitted",
+      "occurred_at": "2026-11-06T15:20:00Z",
+      "received_at": "2026-11-06T15:20:02Z",
+      "submission_id": "F108",
+      "contact": {
+        "name": "Jordan Lee",
+        "email": "jordan.lee@example.com",
+        "phone": "+12025550101",
+        "phone_country": "US",
+        "timezone": "America/New_York"
+      },
+      "source": "website",
+      "service": "citizenship"
+    }
+  ],
+  "schema_version": "1.1",
+  "service_units": [
+    {
+      "id": "citizenship",
+      "name": "Citizenship"
+    },
+    {
+      "id": "inadmissibility",
+      "name": "Inadmissibility"
+    },
+    {
+      "id": "work_permits",
+      "name": "Work permits"
+    }
+  ],
+  "routing_policy": {
+    "new_inquiry": "Route only to a rep eligible for the requested service. Choose and document a simple distribution rule among available eligible reps.",
+    "returning_same_service": "Preserve the existing service owner where appropriate. If unavailable, explain temporary coverage, deferral or escalation without silently replacing the relationship.",
+    "returning_different_service": "Preserve existing service assignments and history. Establish an eligible owner for the new service inquiry. Reusing an existing owner who is eligible is allowed if justified.",
+    "no_available_eligible_rep": "Create a visible queue, task or escalation rather than assigning to someone ineligible."
+  }
+}
+
