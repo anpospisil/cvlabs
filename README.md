@@ -37,13 +37,32 @@ npm test       # 13 tests (node:test)
 - `{{rep_name}}` is the covering rep or the owner, because call events don't say which rep called.
 
 ## Data observations
-- E002 arrives twice: a webhook retry, not a double submit. The double submit is F100 + F101.
-- E009 "queued" happened at 15:05 but arrived at 15:09, after "delivered".
-- The STOP (E012) happened at 15:01 but arrived at 15:12, after the voicemail call it should suppress.
-- L1001 and L1002 share a phone: two people, flagged, not merged.
-- Avery Stone (Los Angeles) was called at **07:10 local time**, outside the window, so it is flagged.
-- Drew Ellis has no timezone.
-- The Close sending number has no business verification or messaging registration on file, which is a plausible cause of the 30007 carrier-filtering failure (*a hypothesis, not confirmed*). The RingCentral number has no confirmed SMS capability.
+**Identity and submissions**
+- Taylor Reed submitted twice (F100, F101); the second has a padded, uppercase email (" TAYLOR.REED@EXAMPLE.COM ") and a differently formatted phone. Both are normalized before matching.
+- E002 arrives twice (15:02:02 and 15:02:40) with the same event_id: a webhook redelivery, not a double click. The double submit is F100 + F101.
+- `sms_permission` is missing from several submissions; it's treated as "no new information", not as permission granted or withdrawn.
+- L1001 (Jordan Lee) and L1002 (Casey Lee) share a phone and last name, with different owners (REP03, REP04). Treated as two people, flagged, not merged; possibly a household (see Known gaps).
+- F103 and F104 reuse Avery Stone's phone with a different name or email (see Key decisions).
+
+**Reps and routing**
+- Reps only have `assigned_today` (a total across units), with no active caseload, so the distribution rule uses it.
+- `available` is a snapshot. REP03 (Jordan Lee's owner) is unavailable when Jordan returns.
+
+**Calls and contact window**
+- `call.finished` events don't say which rep made the call, so attribution is assumed (see Known gaps).
+- I102 has two attempts on two providers: Close busy, then RingCentral completed.
+- Avery Stone (Los Angeles) was called at **07:10 local time**, outside the 09:00–18:00 window, so it's flagged.
+- Drew Ellis has no timezone, so the contact window can't be checked and automated texts are blocked.
+
+**SMS and delivery**
+- The STOP (E012) happened at 15:01 but arrived at 15:12, after the voicemail call (E013) it should suppress.
+- E009 "queued" happened at 15:05 but arrived at 15:09, after "delivered" (E008): an out-of-order update.
+- M101 failed with 30007 (carrier filtering) after being accepted.
+- "Delivered" means the carrier reached the handset; it is not a conversion.
+
+**Numbers**
+- The Close sending number has no business verification or messaging registration on file, a plausible cause of the 30007 failure (*a hypothesis, not confirmed*).
+- The RingCentral number has no confirmed SMS capability, so it isn't used for texts.
 
 ## Tests (`test/engine.test.ts`)
 Normalization; redelivery and repeat submissions; least-loaded routing; same-service return; different service (one reassigned, one reused); unavailable-owner coverage; no-eligible-rep escalation; conflicting matches go to review; STOP across services when it arrives late; unknown timezone blocks texts; a repeated call doesn't send a second text; late "queued" doesn't override "delivered"; a repeated failure gives exactly one task.
